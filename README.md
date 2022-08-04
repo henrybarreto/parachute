@@ -1,7 +1,7 @@
 # Parachute
 <p align="center">
-    <img src="https://user-images.githubusercontent.com/23109089/182892817-661365de-767d-45dc-8145-868c899f2eb3.png#gh-dark-mode-only" alt="WK's dark logo" />
-    <img src="https://user-images.githubusercontent.com/23109089/182893857-0d20157e-4d4e-4eb3-ba24-a13273723b54.png#gh-light-mode-only" alt="WK's light logo" />
+    <img src="https://user-images.githubusercontent.com/23109089/182893857-0d20157e-4d4e-4eb3-ba24-a13273723b54.png#gh-dark-mode-only" alt="WK's dark logo" />
+    <img src="https://user-images.githubusercontent.com/23109089/182894503-df2aca1c-500e-4b12-b733-3dd2f60aec08.png#gh-light-mode-only" alt="WK's light logo" />
 </p>
 
 <p align="center">Parachute is a simple and fast way to delivery files to friends.</p>
