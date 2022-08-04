@@ -1,5 +1,10 @@
 # Parachute
-Parachute is a simple and fast way to delivery files to friends.
+<p align="center">
+    <img src="https://user-images.githubusercontent.com/23109089/182892817-661365de-767d-45dc-8145-868c899f2eb3.png#gh-dark-mode-only" alt="WK's dark logo" />
+    <img src="https://user-images.githubusercontent.com/23109089/182893857-0d20157e-4d4e-4eb3-ba24-a13273723b54.png#gh-light-mode-only" alt="WK's light logo" />
+</p>
+
+<p align="center">Parachute is a simple and fast way to delivery files to friends.</p>
 
 Parachute encrypts the files and store it into a volatile database, what means that any file sent to it will be lost 
 after some period or when the server restarts, so, *you don't use it as a backup system !*.
