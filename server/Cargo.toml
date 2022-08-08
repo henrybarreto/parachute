@@ -1,0 +1,12 @@
+[package]
+name = "server"
+description = "Parachute's server"
+version = "0.1.0"
+edition = "2021"
+author = "henry barreto <me@henrybarreto.dev>"
+repository = "https://github.com/henrybarreto/parachute/server"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

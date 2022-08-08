@@ -7,11 +7,11 @@
 <p align="center">Parachute is a simple and fast way to delivery files to friends.</p>
 
 Parachute encrypts the files and store it into a volatile database, what means that any file sent to it will be lost 
-after some period or when the server restarts, so, *you don't use it as a backup system !*.
+after some period or when the server restarts, so, *you don't use it as a backup system!*.
 
 These files are completely anonymous. No information about who sent the file are saved on the server, but any file what
 found and considerable as inappropriate will be deleted without any warning, so, again, *you don't use parachute to 
-send those kinds of files !*.
+send those kinds of files!*.
 
 ## How to use
 
@@ -56,26 +56,8 @@ parachute download -h 1a79a4d60de6718e8e5b326e338ae533 xytjlxza
 
 ## Protocol
 
-Parachute is a relative simple client-server protocol what runs over the HTTPS protocol. 
+Parachute is a relative simple client-server protocol what runs over the TCP protocol. 
 
-It sends a file with some flags, case signed by user, to the server. The server saves it into a volatile database. When
-a download is required, it checks these flags, executing needed validation, logic and callbacks.
-
-The Parachute client works as a HTTP client to send a file to the server.
-```http
-https://parachute.example/api/v1/upload
-{
-	"password": "",
-	"times": "",
-	"address" : ""
-}
-```
-
-Through the client, we can also download the file from the server.
-```http
-https://parachute.example/api/v1/download/xytjlxza
-{
-	"password": "",
-	"hash": ""
-}
-```
+It sends a file with some flags, case signed by user, to the server. The server saves it into a volatile database to
+be downloaded when required. It checks the flags, executing needed validation, logic and callbacks when that download
+is requested.

@@ -1,10 +1,23 @@
 [package]
 name = "parachute"
-description = "Parachute is a simple and fast way to delivery files to friends."
+description = "Parachute is a simple and fast way to delivery files to friends"
+keywords = [ "parachute, delivery, upload, download, files, friends" ]
 version = "0.1.0"
 edition = "2021"
-author = "Henry Barreto <me@henrybarreto.dev>"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+author = "henry barreto <me@henrybarreto.dev>"
+repository = "https://github.com/henrybarreto/parachute"
 
 [dependencies]
+tokio = { version = "1", features = ["full"] }
+clap  = { version = "3.2.16" }
+
+server = { path = "./server/" }
+client = { path = "./client/" }
+
+[workspace]
+members = [
+    "server",
+	"client"
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
