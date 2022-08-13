@@ -8,7 +8,7 @@ repository = "https://github.com/henrybarreto/parachute/client"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
-actix-web = { version = "4" }
 redis = { version = "0.21.5", features = ["tokio-comp"] }
+uuid = { version = "1.1.2", features= ["v4"] }
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

@@ -3,10 +3,14 @@ name = "server"
 description = "Parachute's server"
 version = "0.1.0"
 edition = "2021"
-author = "henry barreto <me@henrybarreto.dev>"
+author = "Henry Barreto <me@henrybarreto.dev>"
 repository = "https://github.com/henrybarreto/parachute/server"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
+redis = { version = "0.21.5", features = ["tokio-comp"] }
+uuid = { version = "1.1.2", features= ["v4"] }
+log = { version = "0.4.17" }
+simple_logger = { version = "2.2.0" }
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
