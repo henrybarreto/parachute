@@ -1,25 +1,16 @@
-pub mod action;
-pub mod database;
-pub mod download;
-pub mod network;
-pub mod upload;
-
 use log::{error, info, trace};
-use simple_logger::SimpleLogger;
 use std::io::Error;
 use std::rc::Rc;
 use tokio::net::TcpListener;
 use tokio::sync::Mutex;
 
-use action::Action;
+use server::action::Action;
+use server::download;
+use server::network;
+use server::upload;
 
-pub const SERVER_ADDRESS: &str = "localhost:14014";
-
-#[tokio::main]
-async fn main() -> Result<(), Error> {
-    SimpleLogger::new().init().unwrap();
-
-    let address = SERVER_ADDRESS;
+pub async fn serve() -> Result<(), Error> {
+    let address = "localhost:14014";
     info!("starting Parachute server");
     info!("version: {}", env!("CARGO_PKG_VERSION"));
 

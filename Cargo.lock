@@ -319,7 +319,9 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "client",
+ "log",
  "server",
+ "simple_logger",
  "tokio",
 ]
 
