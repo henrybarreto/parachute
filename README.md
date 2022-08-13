@@ -6,6 +6,12 @@
 
 <p align="center">Parachute is a simple and fast way to delivery files to friends.</p>
 
+<p align="center">
+<img src="https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white"/>
+<img src="https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white"/>
+<img src="https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white"/>
+</p>
+
 Parachute encrypts the files and store it into a volatile database, what means that any file sent to it will be lost 
 after some period or when the server restarts, so, *you don't use it as a backup system!*.
 
@@ -14,6 +20,8 @@ found and considerable as inappropriate will be deleted without any warning, so,
 send those kinds of files!*.
 
 ## How to use
+
+> NOTICE: The CLI interface isn't implemented yet. Currently, you can run the `server` and the `client` as standalone binaries.
 
 ### Upload
 
@@ -41,17 +49,17 @@ parachute upload -a 127.0.0.1 photo.jpeg
 
 Gets a file from the server.
 ```
-parachute download xytjlxza 
+parachute download 00000000-0000-0000-0000-000000000000 
 ```
 
 Gets a file from the server when it has a password.
 ```
-parachute download -p Example123 xytjlxza 
+parachute download -p Example123 00000000-0000-0000-0000-000000000000 
 ```
 
 Gets a file from the server only when it matches to a hash.
 ```
-parachute download -h 1a79a4d60de6718e8e5b326e338ae533 xytjlxza 
+parachute download -h 1a79a4d60de6718e8e5b326e338ae533 00000000-0000-0000-0000-000000000000 
 ```
 
 ## Protocol
