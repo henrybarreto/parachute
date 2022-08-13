@@ -1,39 +1,15 @@
 use log::{debug, error, info};
-use redis::Commands;
-use std::io::{Error, Read, Write};
+use std::io::Error;
 use std::rc::Rc;
 use std::vec;
-use tokio::net::{TcpStream};
+use tokio::net::TcpStream;
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
+use crate::database::{connect, save};
 use crate::network;
-use crate::constant::{PARACHUTE_TRUE, PARACHUTE_FALSE, PARACHUTE_FILE_LIMIT_SIZE, PARACHUTE_DATABASE_ADDRESS};
 
-pub async fn connect(address: &str) -> Result<redis::Connection, redis::RedisError> {
-    let client = redis::Client::open(address)?;
-
-    Ok(client.get_connection()?)
-}
-
-pub async fn save(
-    connection: &mut redis::Connection,
-    uuid: &str,
-    data: Vec<u8>,
-) -> Result<(), redis::RedisError> {
-    connection.set(uuid, data)?;
-
-    Ok(())
-}
-
-pub async fn check(
-    connection: &mut redis::Connection,
-    uuid: &str,
-) -> Result<Vec<u8>, redis::RedisError> {
-    let data = connection.get(uuid)?;
-
-    Ok(data)
-}
+pub const FILE_LIMIT_SIZE: u64 = 10485760;
 
 /// Bootstaps a single Parachute upload.
 /// It receives the client's version, the file's size and flags to return the number of chucks that will be sent.
@@ -52,16 +28,13 @@ pub async fn check(
 // TODO: add a hash of the file to verify the integrity of the file.
 // TODO: add flags feature.
 pub async fn bootstrap(stream: Rc<Mutex<TcpStream>>) -> Result<(u64, u64), Error> {
-    let mut buffer = vec![0; 11];
+    let mut buffer = vec![0; 11]; // 3 bytes for version, 8 bytes for size.
 
-    //stream.readable().await?;
-    //let read = stream.read_exact(&mut buffer).await;
     let read = network::receive(stream.clone(), &mut buffer).await;
     if read.is_err() {
         let err = read.err().unwrap();
         error!("error reading version: {}", err);
-        //stream.try_write(&[FALSE; 1])?;
-        network::send(stream.clone(), &[PARACHUTE_FALSE; 1]).await?;
+        network::send(stream.clone(), &[network::NEGATIVE; 1]).await?;
 
         Err(err)
     } else {
@@ -70,11 +43,11 @@ pub async fn bootstrap(stream: Rc<Mutex<TcpStream>>) -> Result<(u64, u64), Error
         let version_patch = buffer[2];
         debug!("client version: {version_major}.{version_minor}.{version_patch}");
 
-        let n = [
+        let size_buffer = [
             buffer[3], buffer[4], buffer[5], buffer[6], buffer[7], buffer[8], buffer[9], buffer[10],
         ];
 
-        let size = u64::from_be_bytes(n);
+        let size = u64::from_be_bytes(size_buffer);
         debug!("file size size: {size}");
         /*
         NOTICE: The flags are not implemented yet.
@@ -107,7 +80,7 @@ pub async fn bootstrap(stream: Rc<Mutex<TcpStream>>) -> Result<(u64, u64), Error
         debug!("client version stamp: {version}");
 
         //stream.try_write(&[TRUE; 1])?;
-        network::send(stream.clone(), &[PARACHUTE_TRUE; 1]).await?;
+        network::send(stream.clone(), &[network::POSITIVE; 1]).await?;
 
         Ok((version, size))
     }
@@ -118,18 +91,16 @@ pub async fn bootstrap(stream: Rc<Mutex<TcpStream>>) -> Result<(u64, u64), Error
 /// successful or not.
 // TODO: handle upload by chunks.
 pub async fn upload(stream: Rc<Mutex<TcpStream>>, size: u64) -> Result<bool, Error> {
-    if size > PARACHUTE_FILE_LIMIT_SIZE {
+    if size > FILE_LIMIT_SIZE {
         error!("file size is too big");
 
         Ok(false)
     } else {
-        let mut buffer = vec![0; size as usize];
+        let mut buffer = vec![0; size as usize]; // file buffer.
 
-        //let read = stream.try_read(&mut buffer);
         let read = network::receive(stream.clone(), &mut buffer).await;
         if read.is_err() {
             error!("error reading file");
-            //let wrote = stream.try_write(&[0; 16]);
             let wrote = network::send(stream.clone(), &[0; 16]).await;
             if wrote.is_err() {
                 error!("error writing response from error reading file");
@@ -142,13 +113,15 @@ pub async fn upload(stream: Rc<Mutex<TcpStream>>, size: u64) -> Result<bool, Err
             debug!("file uuid: {uuid}");
 
             info!("saving file to database");
-            let mut connection = connect(PARACHUTE_DATABASE_ADDRESS).await.unwrap(); // TODO: unwrap is not safe.
-            let wrote = save(&mut connection, uuid, buffer).await;
+            let connection = connect().await; // TODO: unwrap is not safe.
+            if connection.is_err() {
+                panic!("error connecting to database");
+            }
+            let wrote = save(&mut connection.unwrap(), uuid, buffer).await;
             if wrote.is_err() {
                 error!("error saving file into redist database");
                 Ok(false)
             } else {
-                //let wrote = stream.try_write(uuid.as_bytes());
                 let wrote = network::send(stream.clone(), uuid.as_bytes()).await;
                 if wrote.is_err() {
                     error!("error writing response from reading file");
