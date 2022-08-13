@@ -9,7 +9,7 @@ use uuid::Uuid;
 use crate::database::{connect, save};
 use crate::network;
 
-pub const FILE_LIMIT_SIZE: u64 = 10485760;
+pub const FILE_LIMIT_SIZE: u64 = 1000000; // 1MB
 
 /// Bootstaps a single Parachute upload.
 /// It receives the client's version, the file's size and flags to return the number of chucks that will be sent.
