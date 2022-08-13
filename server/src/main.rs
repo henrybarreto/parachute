@@ -1,6 +1,8 @@
-mod lib;
+pub mod action;
+pub mod network;
+pub mod upload;
+pub mod constant;
 
-use lib::{bootstrap, landing, upload, Action};
 use log::{debug, error, info};
 use simple_logger::SimpleLogger;
 use std::io::Error;
@@ -8,13 +10,14 @@ use std::rc::Rc;
 use tokio::net::TcpListener;
 use tokio::sync::Mutex;
 
-const PARACHUTE_ADDRESS: &str = "localhost:14014";
+use action::Action;
+use constant::{PARACHUTE_SERVER_ADDRESS};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     SimpleLogger::new().init().unwrap();
 
-    let address = PARACHUTE_ADDRESS;
+    let address = PARACHUTE_SERVER_ADDRESS;
     info!("starting Parachute server");
     info!("version: {}", env!("CARGO_PKG_VERSION"));
 
@@ -25,7 +28,7 @@ async fn main() -> Result<(), Error> {
 
         info!("new connection from {address}");
         let connection = Rc::new(Mutex::new(stream));
-        let action = landing(connection.clone()).await;
+        let action = network::landing(connection.clone()).await;
         if action.is_err() {
             error!("error landing");
 
@@ -41,7 +44,7 @@ async fn main() -> Result<(), Error> {
             }
             Action::UPLOAD => {
                 info!("upload action");
-                let bootstraped = bootstrap(connection.clone()).await;
+                let bootstraped = upload::bootstrap(connection.clone()).await;
                 if bootstraped.is_err() {
                     error!("error bootstraping");
 
@@ -51,7 +54,7 @@ async fn main() -> Result<(), Error> {
                 let (version, size) = bootstraped.unwrap();
                 debug!("{version} and {size}");
 
-                let uploaded = upload(connection.clone(), size).await.unwrap();
+                let uploaded = upload::upload(connection.clone(), size).await.unwrap();
                 if uploaded {
                     info!("upload successful");
                 } else {

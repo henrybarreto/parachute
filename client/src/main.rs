@@ -43,7 +43,7 @@ async fn main() -> Result<(), Error> {
     println!("VERSION AND FILE SIZE RECEIVE BY SERVER: {:?}", b);
 
     let mut file_buffer = vec![0 as u8; size as usize];
-    file.read(&mut file_buffer).await?;  // read file content locallly.
+    file.read(&mut file_buffer).await?; // read file content locallly.
     stream.write(&file_buffer).await?; // send file to server.
 
     let mut uuid_buffer = [0 as u8; 16];

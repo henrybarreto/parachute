@@ -1,38 +1,22 @@
-use log::{debug, error, info, trace};
+use log::{debug, error, info};
 use redis::Commands;
 use std::io::{Error, Read, Write};
-use std::net::Shutdown;
 use std::rc::Rc;
-use std::{io, vec};
-use tokio::io::Interest;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::{TcpListener, TcpStream};
+use std::vec;
+use tokio::net::{TcpStream};
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
-pub async fn send(stream: Rc<Mutex<TcpStream>>, data: &[u8]) -> Result<usize, Error> {
-    let mut local = stream.lock().await;
+use crate::network;
+use crate::constant::{PARACHUTE_TRUE, PARACHUTE_FALSE, PARACHUTE_FILE_LIMIT_SIZE, PARACHUTE_DATABASE_ADDRESS};
 
-    let wrote = local.write(&data).await?;
-
-    Ok(wrote)
-}
-
-pub async fn receive(stream: Rc<Mutex<TcpStream>>, data: &mut [u8]) -> Result<usize, Error> {
-    let mut local = stream.lock().await;
-
-    let read = local.read(data).await?;
-
-    Ok(read)
-}
-
-pub async fn connectToRedis(address: &str) -> Result<redis::Connection, redis::RedisError> {
+pub async fn connect(address: &str) -> Result<redis::Connection, redis::RedisError> {
     let client = redis::Client::open(address)?;
 
     Ok(client.get_connection()?)
 }
 
-pub async fn saveToRedis(
+pub async fn save(
     connection: &mut redis::Connection,
     uuid: &str,
     data: Vec<u8>,
@@ -42,69 +26,13 @@ pub async fn saveToRedis(
     Ok(())
 }
 
-pub async fn checkFromRedis(
+pub async fn check(
     connection: &mut redis::Connection,
     uuid: &str,
 ) -> Result<Vec<u8>, redis::RedisError> {
     let data = connection.get(uuid)?;
 
     Ok(data)
-}
-
-const PARACHUTE_REDIS_ADDREESS: &str = "redis://localhost:6379";
-
-const PARACHUTE_FILE_LIMIT_SIZE: u64 = 10485760;
-
-const PARACHUTE_TRUE: u8 = 0;
-const PARACHUTE_FALSE: u8 = 1;
-
-/// Represents valid actions on Parachute server.
-pub enum Action {
-    /// A download action.
-    DOWNLOAD = 1,
-    /// A upload action.
-    UPLOAD = 2,
-    /// A unknown action.
-    UNKNOWN = 3,
-}
-
-impl Action {
-    /// Converts a u8 to an Action.
-    pub fn from_u8(value: u8) -> Action {
-        match value {
-            1 => Action::DOWNLOAD,
-            2 => Action::UPLOAD,
-            _ => Action::UNKNOWN,
-        }
-    }
-
-    /// Converts an buffer with one byte to an Action.
-    pub fn from_buffer(buffer: Vec<u8>) -> Action {
-        Self::from_u8(buffer[0])
-    }
-}
-
-/// Landing point to select the action to be performed on Parachute server: download or upload.
-/// It receives the action what the client wants to perferm a action on the server to return a boolean that informs if the action
-/// was successful or not.
-///
-/// The first byte represents the action; one means download and two, upload.
-pub async fn landing(stream: Rc<Mutex<TcpStream>>) -> Result<Action, Error> {
-    let mut buffer = vec![0; 1];
-
-    receive(stream.clone(), &mut buffer).await?;
-    let action = Action::from_buffer(buffer);
-    if let Action::UNKNOWN = action {
-        error!("unknown action");
-        //stream.try_write(&[FALSE; 1])?;
-        send(stream.clone(), &[PARACHUTE_FALSE; 1]).await?;
-    } else {
-        debug!("valid action");
-        //stream.try_write(&[TRUE; 1])?;
-        send(stream.clone(), &[PARACHUTE_TRUE; 1]).await?;
-    }
-
-    Ok(action)
 }
 
 /// Bootstaps a single Parachute upload.
@@ -128,12 +56,12 @@ pub async fn bootstrap(stream: Rc<Mutex<TcpStream>>) -> Result<(u64, u64), Error
 
     //stream.readable().await?;
     //let read = stream.read_exact(&mut buffer).await;
-    let read = receive(stream.clone(), &mut buffer).await;
+    let read = network::receive(stream.clone(), &mut buffer).await;
     if read.is_err() {
         let err = read.err().unwrap();
         error!("error reading version: {}", err);
         //stream.try_write(&[FALSE; 1])?;
-        send(stream.clone(), &[PARACHUTE_FALSE; 1]).await?;
+        network::send(stream.clone(), &[PARACHUTE_FALSE; 1]).await?;
 
         Err(err)
     } else {
@@ -179,7 +107,7 @@ pub async fn bootstrap(stream: Rc<Mutex<TcpStream>>) -> Result<(u64, u64), Error
         debug!("client version stamp: {version}");
 
         //stream.try_write(&[TRUE; 1])?;
-        send(stream.clone(), &[PARACHUTE_TRUE; 1]).await?;
+        network::send(stream.clone(), &[PARACHUTE_TRUE; 1]).await?;
 
         Ok((version, size))
     }
@@ -198,11 +126,11 @@ pub async fn upload(stream: Rc<Mutex<TcpStream>>, size: u64) -> Result<bool, Err
         let mut buffer = vec![0; size as usize];
 
         //let read = stream.try_read(&mut buffer);
-        let read = receive(stream.clone(), &mut buffer).await;
+        let read = network::receive(stream.clone(), &mut buffer).await;
         if read.is_err() {
             error!("error reading file");
             //let wrote = stream.try_write(&[0; 16]);
-            let wrote = send(stream.clone(), &[0; 16]).await;
+            let wrote = network::send(stream.clone(), &[0; 16]).await;
             if wrote.is_err() {
                 error!("error writing response from error reading file");
             }
@@ -214,14 +142,14 @@ pub async fn upload(stream: Rc<Mutex<TcpStream>>, size: u64) -> Result<bool, Err
             debug!("file uuid: {uuid}");
 
             info!("saving file to database");
-            let mut connection = connectToRedis(PARACHUTE_REDIS_ADDREESS).await.unwrap(); // TODO: unwrap is not safe.
-            let wrote = saveToRedis(&mut connection, uuid, buffer).await;
+            let mut connection = connect(PARACHUTE_DATABASE_ADDRESS).await.unwrap(); // TODO: unwrap is not safe.
+            let wrote = save(&mut connection, uuid, buffer).await;
             if wrote.is_err() {
                 error!("error saving file into redist database");
                 Ok(false)
             } else {
                 //let wrote = stream.try_write(uuid.as_bytes());
-                let wrote = send(stream.clone(), uuid.as_bytes()).await;
+                let wrote = network::send(stream.clone(), uuid.as_bytes()).await;
                 if wrote.is_err() {
                     error!("error writing response from reading file");
                     Ok(false)
