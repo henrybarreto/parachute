@@ -23,43 +23,52 @@ send those kinds of files!*.
 
 > NOTICE: The CLI interface isn't implemented yet. Currently, you can run the `server` and the `client` as standalone binaries.
 
-### Upload
+### Server
+Starting a Parachute server.
+
+```
+parachute server
+```
+
+### Client
+
+#### Upload
 
 Sends a photo to the server.
 ```
-parachute upload photo.jpeg
+parachute client upload photo.jpeg
 ```
 
 Sends a photo to the server with a password.
 ```
-parachute upload -p Example123 photo.jpeg
+parachute client upload -p Example123 photo.jpeg
 ```
 
 Sends a photo to the server with a limit number of downloads or lifetime.
 ```
-parachute upload -t 1 photo.jpeg
+parachute client upload -t 1 photo.jpeg
 ```
 
 Sends a photo to the server with an address allowed.
 ```
-parachute upload -a 127.0.0.1 photo.jpeg
+parachute client upload -a 127.0.0.1 photo.jpeg
 ```
 
-### Download
+#### Download
 
 Gets a file from the server.
 ```
-parachute download 00000000-0000-0000-0000-000000000000 
+parachute client download 00000000-0000-0000-0000-000000000000 
 ```
 
 Gets a file from the server when it has a password.
 ```
-parachute download -p Example123 00000000-0000-0000-0000-000000000000 
+parachute client download -p Example123 00000000-0000-0000-0000-000000000000 
 ```
 
 Gets a file from the server only when it matches to a hash.
 ```
-parachute download -h 1a79a4d60de6718e8e5b326e338ae533 00000000-0000-0000-0000-000000000000 
+parachute client download -h 1a79a4d60de6718e8e5b326e338ae533 00000000-0000-0000-0000-000000000000 
 ```
 
 ## Protocol
