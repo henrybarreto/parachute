@@ -22,4 +22,8 @@ impl Action {
     pub fn from_buffer(buffer: Vec<u8>) -> Action {
         Self::from_u8(buffer[0])
     }
+
+    pub fn to_ne_bytes(action: Action) -> [u8; 1] {
+        [action as u8]
+    }
 }

@@ -4,8 +4,14 @@ description = "Parachute is a simple and fast way to delivery files to friends"
 keywords = [ "parachute, delivery, upload, download, files, friends" ]
 version = "0.1.0"
 edition = "2021"
-author = "henry barreto <me@henrybarreto.dev>"
+author = "Henry Barreto <me@henrybarreto.dev>"
 repository = "https://github.com/henrybarreto/parachute"
+
+[workspace]
+members = [
+    "server",
+	"client"
+]
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
@@ -15,11 +21,5 @@ simple_logger = { version = "2.2.0" }
 
 server = { path = "./server/" }
 client = { path = "./client/" }
-
-[workspace]
-members = [
-    "server",
-	"client"
-]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
