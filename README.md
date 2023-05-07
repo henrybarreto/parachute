@@ -12,13 +12,6 @@
 <img src="https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white"/>
 </p>
 
-Parachute encrypts the files and store it into a volatile database, what means that any file sent to it will be lost 
-after some period or when the server restarts, so, *you don't use it as a backup system!*.
-
-These files are completely anonymous. No information about who sent the file are saved on the server, but any file what
-found and considerable as inappropriate will be deleted without any warning, so, again, *you don't use parachute to 
-send those kinds of files!*.
-
 ## How to use
 
 > NOTICE: The CLI interface isn't implemented yet. Currently, you can run the `server` and the `client` as standalone binaries.
